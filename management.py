@@ -1,139 +1,7 @@
-from collections import defaultdict
 import discord
 from random import randint
-from datetime import datetime, date, timedelta
-import pandas as pd
-import gspread
-from oauth2client.service_account import ServiceAccountCredentials
 
-from artist import Artist
-from to1member import TO1Member
-
-
-def _is_new_day(d: datetime):
-  return date.today() > d.date()
-
-# first_attr is the first attribute of the worksheet; the identifier
-def _update_db(sheet: gspread.Worksheet, first_attr, col, value):
-  sheet_values = sheet.get_values(value_render_option="UNFORMATTED_VALUE")
-
-  row = 2
-  for i in range(0, len(sheet_values)):
-    if str(sheet_values[i][0]) == first_attr:
-      row = i+1
-      break
-  
-  sheet.update_cell(row, col, value)
-
-def _insert(sheet: gspread.Worksheet, col, value):
-  sheet_values = sheet.get_all_values()
-  empty_cell_row = len(sheet_values)
-  sheet.update_cell(empty_cell_row, col, value)
-
-def _batch_insert(sheet: gspread.Worksheet, cols, values):
-  sheet_values = sheet.get_values()
-  empty_cell_row = len(sheet_values)+1
-
-  cell_range_list = [col + str(empty_cell_row) for col in cols]
-  cell_range = cell_range_list[0] + ":" + cell_range_list[-1]
-  cells = sheet.range(cell_range)
-
-  for i in range(len(cells)):
-    cells[i].value = values[i]
-  
-  sheet.update_cells(cells)
-
-# cols is a list of letters A-Z that correspond to the spreadsheet
-def _batch_update(sheet: gspread.Worksheet, first_attr, cols, values):
-  sheet_values = sheet.get_values()+1
-
-  row = 2
-  for i in range(len(sheet_values)):
-    if values[i][0] == first_attr:
-      row = i + 1
-      break
-
-  cell_range_list = [col + str(row) for col in cols]
-  cell_range = cell_range_list[0] + ":" + cell_range_list[-1]
-  cells = sheet.range(cell_range)
-  for i in range(len(cells)):
-    cells[i].value = values[i]
-  
-  sheet.update_cells(cells)
-
-def initialize_db():
-  scope = ["https://www.googleapis.com/auth/spreadsheets", "https://www.googleapis.com/auth/drive"]
-  credentials = ServiceAccountCredentials.from_json_keyfile_name("gs_credentials.json", scope)
-  client = gspread.authorize(credentials)
-
-  # sheet = client.create("Database")
-  # sheet.share('Haggethers@gmail.com', perm_type='user', role='writer')
-  return client.open("Test Database")
-
-def initialize_to1():
-  members_sheet = SHEET_DB.get_worksheet(0)
-  members_records = members_sheet.get_all_records()
-  to1_members = {}
-
-  for member in members_records:
-    to1_members[member["name"]] = TO1Member(member["name"], member["emoji"], member["embed_color"], member["image"])
-  
-  return to1_members
-
-def initialize_artists():
-  artists_sheet = SHEET_DB.get_worksheet(1)
-  collections_sheet = SHEET_DB.get_worksheet(2)
-  artists_records = artists_sheet.get_all_records(default_blank="", value_render_option="UNFORMATTED_VALUE")
-  collections_records = collections_sheet.get_all_records(value_render_option="UNFORMATTED_VALUE")
-  
-  artists = {}
-  artists_ids = {}
-  for artist in artists_records:
-    counter = None
-    if artist["daily_counter"] == "":
-      counter = 0
-    else:
-      counter = artist["daily_counter"]
-    artists[artist["name"]] = Artist(str(artist["id"]).lower(), artist["stage_name"], counter, artist["last_daily_log"])
-    artists_ids[str(artist["id"]).lower()] = artist["name"]
-
-  for artist in artists.values():
-    ldl = artist.get_last_daily_log()
-    if ldl != "":
-      date_diff = timedelta(days = float(ldl))
-      date = datetime(1899, 12, 30) # google converts date values into ints as a day difference from today to 12/30/1899
-      current = date + date_diff
-      if _is_new_day(current):
-        _update_db(artists_sheet, artist.get_id(), 4, 0)
-
-  artists_collections = defaultdict(list)
-  for cr in collections_records:
-    artists_collections[str(cr["uid"])].append( (cr["member_name"], datetime.strptime(cr["date_received"], "%m/%d/%y").date()) )
-
-  for id, collection in artists_collections.items():
-    artist_name = artists_ids[id]
-    artists[artist_name].set_daily_collection(collection)  
-
-  return artists
-
-# def initialize_to1():
-#   TO1_MEMBERS["Donggeon"] = TO1Member("Donggeon", ":lion_face:", "#d42040", "https://cdn.discordapp.com/attachments/1018469333522972692/1018469434874134549/Donggeon.jpeg")
-#   TO1_MEMBERS["Jisu"] = TO1Member("Jisu", ":turtle:", "#d5bc2d", "https://cdn.discordapp.com/attachments/1018469333522972692/1018469435331317830/Jisu.jpeg")
-#   TO1_MEMBERS["Jaeyun"] = TO1Member("Jaeyun", ":teddy_bear:", "#d63b3a", "https://media.discordapp.net/attachments/1018469333522972692/1018469435121606747/Jaeyun.jpeg")
-#   TO1_MEMBERS["J.You"] = TO1Member("J.You", ":dragon:", "#987c8b", "https://cdn.discordapp.com/attachments/1018469333522972692/1018469435603959928/JYou.jpeg")
-#   TO1_MEMBERS["Kyungho"] = TO1Member("Kyungho", ":black_cat:", "#5a995c", "https://cdn.discordapp.com/attachments/1018469333522972692/1018469435851415572/Kyungho.jpeg")
-#   TO1_MEMBERS["Daigo"] = TO1Member("Daigo", ":flame:", "#e88367", "https://cdn.discordapp.com/attachments/1018469333522972692/1018469434572156958/Daigo.jpeg")
-#   TO1_MEMBERS["Renta"] = TO1Member("Renta", ":smiling_imp:", "#e72339", "https://cdn.discordapp.com/attachments/1018469333522972692/1018469436111466586/Renta.jpeg")
-#   TO1_MEMBERS["Yeojeong"] = TO1Member("Yeojeong", ":man_fairy:", "#e9975b", "https://cdn.discordapp.com/attachments/1018469333522972692/1018469436421853194/Yeojeong.jpeg")
-
-# def initialize_artists(guild):
-#   for gm in guild.members:
-#     if not gm.bot:
-#       ARTISTS[gm] = Artist(gm)
-
-SHEET_DB = initialize_db()
-TO1_MEMBERS = initialize_to1()
-ARTISTS = initialize_artists()
+from helpers import *
 
 def get_slay_percentage(user):
   percentage = randint(0, 100)
@@ -153,21 +21,15 @@ def get_slay_percentage(user):
   
   return message
 
-def test():
-  artist_sheet = SHEET_DB.get_worksheet(1)
-  collections_sheet = SHEET_DB.get_worksheet(2)
-  v = artist_sheet.get_values()
-
 def get_greeting(user):
+  global COLLECTIONS_INDEX
   index = randint(0, len(TO1_MEMBERS.keys())-1)
   member = list(TO1_MEMBERS.keys())[index]
   artist = ARTISTS[user.name]
-  artist_sheet = SHEET_DB.get_worksheet(1)
-  collections_sheet = SHEET_DB.get_worksheet(2)
   artist_id = artist.get_id()
 
   artist.add_daily_counter()
-  _update_db(artist_sheet, artist_id, 4, artist.get_daily_counter())
+  update_db(ARTISTS_SHEET, artist_id, 4, artist.get_daily_counter())
 
   responses = [
     "HEY STOP THAT! :rage:",
@@ -198,8 +60,9 @@ def get_greeting(user):
   artist.set_last_daily_log( date.today() )
   today = date.today().strftime("%m/%d/%y")
   
-  _update_db(artist_sheet, artist_id, 5, today)
-  _batch_insert(collections_sheet, ["A", "B", "C"], [float(artist_id), member, today])
+  update_db(ARTISTS_SHEET, artist_id, 5, today)
+  batch_update(COLLECTIONS_SHEET, COLLECTIONS_INDEX, ["A", "B", "C"], [float(artist_id), member, today])
+  COLLECTIONS_INDEX += 1
   
   title = ":sparkling_heart: TO: {0} :sparkling_heart:".format(artist.stage_name)
   description = "{0}아 안녕~\n오늘도 beautiful day 하겠다 ^^ 사랑해 :smiling_face_with_3_hearts:\n".format(artist.stage_name)
@@ -216,6 +79,26 @@ def get_greeting(user):
   #   ":sparkling_heart: {0} :sparkling_heart:\n".format(user.display_name) + \
   #   "{0} {1} says hi~ hehe\n".format(member, TO1_MEMBERS[member]) + \
   #   "\"{0}아 안녕~ 오늘도 beautiful day 하겠다 ^^ 사랑해 :hand_with_index_finger_and_thumb_crossed:\"".format(user.display_name)
+
+def greeting_error(user):
+  title = "SOMETHING WENT WRONG! :cry:"
+  color = discord.Color.red()
+  artist = ARTISTS[user.name]
+  # mention user in description
+  description = f"{0}, try **~greeting** again! :pray:".format(user.mention)
+
+  # check first if collections table was updated
+  # if it was, don't clear data
+  collection = artist.get_daily_collection()
+  if collection[-1][1].date() == date.today():
+    description = f"{0}, the record was saved! Try **~collection** to see it! :pray:".format(user.mention)
+  
+  elif artist.get_daily_counter() > 0:
+    aid = artist.get_id()
+    artist_row = get_record_row(ARTISTS_SHEET.get_values(), str(aid))
+    batch_update(ARTISTS_SHEET, artist_row, ["D, E"], ["", ""])
+
+  return discord.Embed(title=title, description=description, color=color)
 
 def get_collection(user):
   artist = ARTISTS[user.name]
@@ -281,4 +164,35 @@ def get_collection(user):
   embed.description = ""
   embed.color = discord.Color.from_str(color)
   
+  return embed
+
+def _get_projects_by_category(category):
+  projects = dict( filter(lambda p: p[1].get_category() == category, PROJECTS.items()) )
+
+  for _, project in PROJECTS:
+    if project.get_category() == category:
+      projects.append(project)
+
+  return sorted(projects.items(), key=lambda item: int(item))
+
+# TODO: include fields in embed for each project category + solo/group stats
+def get_projects():
+  if len(PROJECTS) == 1:
+    title = "1 Project"
+  else:
+    title = "{0} Projects".format(len(PROJECTS))
+  description = "TOTAL = {0}\n".format(len(PROJECTS))
+
+  for project in PROJECTS:
+    emoji = project.get_emoji()
+    title = project.get_title().upper()
+    members = project.get_group_members().join(', ')
+    d = project.get_release_date()
+    platform = project.get_platform()
+
+    description += "{0} {1} by {2}, released on {3} via {4}".format(emoji, title, members, d, platform)
+
+  color = discord.Color.random()
+  embed = discord.Embed(title, description, color)
+
   return embed

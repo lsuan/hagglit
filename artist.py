@@ -2,8 +2,7 @@
 The Artist class represents a Discord User. It is separate from the Discord User class, but it takes information from it.
 It stores extra information needed for other commands.
 """
-from xmlrpc.client import DateTime
-
+from datetime import datetime, timedelta
 
 class Artist:
   def __init__(self, id, name, daily_counter, last_daily_log):
@@ -12,7 +11,10 @@ class Artist:
     self.emoji = self.__get_user_emoji(name)
     self.daily_collection = [] # [ (member_name, date) ]
     self.daily_counter = daily_counter
-    self.last_daily_log = last_daily_log
+    if last_daily_log != "":
+      self.last_daily_log = self.__format_date_from_sheets(last_daily_log)
+    else:
+      self.last_daily_log = ""
 
   def add_daily_counter(self):
     self.daily_counter += 1
@@ -23,8 +25,8 @@ class Artist:
   def set_daily_collection(self, collection):
     self.daily_collection = collection
 
-  def set_last_daily_log(self, date: DateTime):
-    self.last_daily_log = date
+  def set_last_daily_log(self, ldl: datetime):
+    self.last_daily_log = ldl
 
   def get_id(self):
     return self.id
@@ -34,6 +36,12 @@ class Artist:
 
   def get_daily_collection(self):
     return self.daily_collection
+
+  def __format_date_from_sheets(self, d):
+    date_diff = timedelta(days = float(d))
+    d = datetime(1899, 12, 30) # google converts date values into ints as a day difference from today to 12/30/1899
+    current = d + date_diff
+    return current
 
   def __get_user_emoji(self, name):
     user_info = name.split()

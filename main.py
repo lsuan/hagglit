@@ -1,4 +1,3 @@
-from datetime import timedelta
 import discord
 from discord.ext.commands import Bot
 import os
@@ -13,9 +12,6 @@ guild_id = int(os.getenv("GUILD_ID"))
 @bot.event
 async def on_ready():
   print("{0.user} is ready to slay!".format(bot))
-  # guild = bot.get_guild(guild_id)
-  # channel = bot.get_channel(1018406561770639451)
-  # await channel.send("{0.user} is ready to slay!".format(bot))
 
 @bot.command()
 async def slaygend(ctx, member = None):
@@ -26,7 +22,12 @@ async def slaygend(ctx, member = None):
 
 @bot.command()
 async def greeting(ctx):
-  await ctx.send(embed=get_greeting(ctx.author))
+  try:
+    embed=get_greeting(ctx.author)
+  except:
+    embed=greeting_error(ctx.author)
+  
+  await ctx.send(embed=embed)
 
 @bot.command()
 async def collection(ctx, member = None):
@@ -35,3 +36,11 @@ async def collection(ctx, member = None):
   await ctx.send(embed=get_collection(member))
 
 bot.run(os.getenv("TOKEN"))
+
+@bot.command()
+async def add_project(ctx, project_name, is_group, release_date, platform):
+  pass
+
+@bot.command()
+async def projects(ctx):
+  pass
