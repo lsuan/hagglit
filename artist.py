@@ -22,6 +22,9 @@ class Artist:
   def add_daily(self, member, date):
     self.daily_collection.append( (member, date) )
 
+  def set_daily_counter(self, count):
+    self.daily_counter = count
+
   def set_daily_collection(self, collection):
     self.daily_collection = collection
 

@@ -1,7 +1,5 @@
 from collections import defaultdict
-import discord
 from datetime import datetime, date, timedelta
-import pandas as pd
 import gspread
 from oauth2client.service_account import ServiceAccountCredentials
 
@@ -9,7 +7,7 @@ from artist import Artist
 from to1member import TO1Member
 from projects import Project
 
-def _is_new_day(d: datetime):
+def is_new_day(d: datetime):
   return date.today() > d.date()
 
 def get_index_for(sheet: gspread.Worksheet):
@@ -51,7 +49,7 @@ def batch_update(sheet: gspread.Worksheet, row, cols, values):
   for i in range(len(cells)):
     cells[i].value = values[i]
   
-  sheet.update_cells(cells, value_input_option="USER ENTERED")
+  sheet.update_cells(cells)
 
 def initialize_db():
   scope = ["https://www.googleapis.com/auth/spreadsheets", "https://www.googleapis.com/auth/drive"]
@@ -93,15 +91,14 @@ def initialize_artists():
 
   for artist in artists.values():
     ldl = artist.get_last_daily_log()
-    if ldl != "":
-      if _is_new_day(ldl):
-        update_db(ARTISTS_SHEET, artist.get_id(), 4, 0)
+    if ldl != "" and is_new_day(ldl):
+      update_db(ARTISTS_SHEET, artist.get_id(), 4, 0)
 
   artists_collections = defaultdict(list)
   
   for cr in collections_records:
     if cr["date_received"] != "":
-      artists_collections[str(cr["aid"])].append( (cr["member_name"], datetime.strptime(cr["date_received"], "%m/%d/%y")) )
+      artists_collections[str(cr["aid"])].append( (cr["member_name"], datetime.strptime(cr["date_received"], "%m/%d/%y").date()) )
 
   for id, collection in artists_collections.items():
     artist_name = artists_ids[id]
@@ -112,22 +109,16 @@ def initialize_artists():
 # TODO: get group members' Artist class from gm aid
 def initialize_projects():
   project_records = PROJECTS_SHEET.get_all_records(value_render_option="UNFORMATTED_VALUE")
-  group_records = GROUPS_SHEET.get_all_records(value_render_option="UNFORMATTED_VALUE")
   projects = {}
 
-  for project in projects:
+  for project in project_records:
+    artist_names = set(project["group_members"].split(","))
+    artist_names_keys = set(ARTISTS.keys())
+    group_members = list(artist_names.intersection(artist_names_keys))
     projects[project["id"]] =  \
-      Project(project["id"], project["title"], project["leader"], project["category"], project["is_group"], project["release_date"], project["platoform"])
+      Project(project["id"], project["title"], project["leader"], project["category"], project["is_group"], project["release_date"], project["platform"], group_members)
   
-  group_members = defaultdict(list)
-  for group in group_records:
-    pid = group["project_id"]
-    group_members[pid].append(group["aid"])
-
-  for pid, gm in group_members.items():
-    projects[pid].set_group_members(gm)
-
-  return project_records
+  return projects
 
 
 # DB GLOBALS
@@ -135,12 +126,12 @@ SHEET_DB = initialize_db()
 ARTISTS_SHEET = SHEET_DB.get_worksheet(1)
 COLLECTIONS_SHEET = SHEET_DB.get_worksheet(2)
 PROJECTS_SHEET = SHEET_DB.get_worksheet(3)
-GROUPS_SHEET = SHEET_DB.get_worksheet(4)
+# GROUPS_SHEET = SHEET_DB.get_worksheet(4)
 
 # DB INDEX GLOBALS (for insert methods)
 COLLECTIONS_INDEX = get_index_for(COLLECTIONS_SHEET)
 PROJECTS_INDEX = get_index_for(PROJECTS_SHEET)
-GROUPS_INDEX = get_index_for(GROUPS_SHEET)
+# GROUPS_INDEX = get_index_for(GROUPS_SHEET)
 
 # CLASS GLOBALS
 TO1_MEMBERS = initialize_to1()
