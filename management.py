@@ -22,33 +22,6 @@ def get_slay_percentage(user):
   
   return message
 
-def _get_special_message(artist, to1_member):
-  special_messages = {
-    ["234404082289213000", "Donggeon"]: "Wow I noticed your surf outfit at KCON 2022 LA :thumbsup: :heart:",
-    ["354774414367392000", "Jaeyun"]: "I care and love you the most hehe :heart_hands:",
-    ["354774414367392000", "Kyungho"]: "FINALLY IT'S MY TURN TO LOVE YOU :sunglasses: :heart:",
-    ["401238207808668000", "Renta"]: "Renta care you belly belly much Tate :smiling_face_with_3_hearts:",
-    ["456290857998483000", "Renta"]: "Hana, あなたはとても優しいです、私の一番のファンです。:blush:",
-    ["589912841868542000", "Yeojeong"]: "You're my favorite fan hehe :: :blush:",
-    ["589912841868542000", "Jaeyun"]: "You left me for Yeojeong :sob: but I still love you hehe :heart:",
-    ["592983829329871000", "Renta"]: "RENTAPURR :kissing_cat: :heart:",
-    ["592983829329871000", "Kyungho"]: "Why didn't you let Lee claim me? :cry:",
-    ["595041307773108000", "Kyungho"]: "KATY + KYUNGHO = BESTIES FOR LIFE :heart_eyes: :heart:",
-    ["595041307773108000", "Jaeyun"]: "You're a better leader than me :sweat_smile: :heart:",
-    ["645097777780621000", "Jisu"]: "My mom approves of us Zay hehe :heart:",
-    ["672458826271687000", "Jaeyun"]: "GB, you are my sweetest fan. :blush: :heart:",
-    ["672458826271687000", "Donggeon"]: "GB, look at me, not Jaeyun :pleading_face:",
-    ["756348151207690000", "Jaeyun"]: "Sorry I made you pergant but I still love you (cheater jk) :heart:",
-    ["756348151207690000", "Daigo"]: "Daigi loves my 딸기잼 :heart:",
-    ["994742099238978000", "J.You"]: "I'll look out for you next time I'm in SF :heart:"
-  }
-
-  pair = [str(artist.get_id()), to1_member]
-  if pair in special_messages:
-    return special_messages[pair]
-  else:
-    return ""
-
 def get_greeting(user):
   global COLLECTIONS_INDEX
   index = randint(0, len(TO1_MEMBERS.keys())-1)
@@ -85,9 +58,13 @@ def get_greeting(user):
       description = "jk idk how to do that yet LOL but still stop spamming"
       # description = ":grin:" 
     elif counter >= 6:
-      description = "LMAO I GIVE UP"
+      description = "DID THE TIMEOUT WORK?"
+
+    embed = discord.Embed(title=title, description=description, color=color)
+    embed.set_thumbnail(url="https://cdn.discordapp.com/attachments/1018469333522972692/1019899888873517127/unknown.png")
+    embed.set_footer(icon_url=user.display_avatar, text="Silly Gether")
     
-    return discord.Embed(title=title, description=description, color=color)
+    return embed
     
   artist.add_daily( member, date.today() )
   artist.set_last_daily_log( date.today() )
@@ -96,18 +73,18 @@ def get_greeting(user):
   update_db(ARTISTS_SHEET, artist_id, 5, today)
   batch_update(COLLECTIONS_SHEET, COLLECTIONS_INDEX, ["A", "B", "C"], [float(artist_id), member, today])
   COLLECTIONS_INDEX += 1
-  
+
   title = ":sparkling_heart: TO: {0} :sparkling_heart:".format(artist.stage_name)
-  
+  description = "{0}아 안녕~\n".format(artist.get_stage_name())
   special_message = _get_special_message(artist, member)
   if special_message == "":
-    description = "{0}아 안녕~\n오늘도 beautiful day 하겠다 ^^ 사랑해 :smiling_face_with_3_hearts:\n".format(artist.stage_name)
+    description += "오늘도 beautiful day 하겠다 ^^ 사랑해 :smiling_face_with_3_hearts:\n"
   else:
-    description = special_message
+    description += special_message
 
   description += "**FROM: {0}** {1}".format(member, TO1_MEMBERS[member].get_emoji())
   color = discord.Color.from_str(TO1_MEMBERS[member].get_embed_color())
-  embed = discord.Embed(title, description, color)
+  embed = discord.Embed(title=title, description=description, color=color)
   embed.set_image(url= TO1_MEMBERS[member].get_image())
   return embed
 
@@ -115,6 +92,34 @@ def get_greeting(user):
   #   ":sparkling_heart: {0} :sparkling_heart:\n".format(user.display_name) + \
   #   "{0} {1} says hi~ hehe\n".format(member, TO1_MEMBERS[member]) + \
   #   "\"{0}아 안녕~ 오늘도 beautiful day 하겠다 ^^ 사랑해 :hand_with_index_finger_and_thumb_crossed:\"".format(user.display_name)
+
+def _get_special_message(artist, to1_member):
+  special_messages = {
+    "2.3440408228921344e+17": { "Donggeon": "Wow I noticed your SURF outfit at KCON 2022 LA :thumbsup: :heart:" },
+    "3.5477441436739174e+17": { "Jaeyun" : "I care and love you the most hehe :heart_hands: :blush:", 
+                            "Kyungho": "FINALLY IT'S MY TURN TO LOVE YOU :sunglasses: :heart:" },
+    "4.0123820780866765e+17": { "Renta": "Renta care you belly belly much Tate :smiling_face_with_3_hearts:" },
+    "4.5629085799848346e+17": { "Renta": "Hana, あなたはとても優しいです、私の一番のファンです。:blush:" },
+    "5.89912841868542e+17": { "Yeojeong": "You're my favorite fan hehe :: :blush:",
+                            "Jaeyun": "You left me for Yeojeong :sob: but I still love you hehe :heart:" },
+    "5.929838293298708e+17": { "Renta": "RENTAPURR :kissing_cat: :heart:",
+                            "Kyungho": "Why didn't you let Lee claim me? :cry:" },
+    "5.950413077731082e+17": { "Kyungho": "KATY + KYUNGHO = BESTIES FOR LIFE :heart_eyes: :heart:",
+                            "Jaeyun": "You're a better leader than me :sweat_smile: :heart:" },
+    "6.450977777806213e+17": { "Jisu": "My mom approves of us Zay hehe :heart:" },
+    "6.724588262716867e+17": { "Jaeyun": "GB, you are my sweetest fan. :blush: :heart:",
+                            "Donggeon": "GB, look at me, not Jaeyun :pleading_face:" },
+    "7.563481512076902e+17": { "Jaeyun": "Sorry I made Lee pergant but I still love you (cheater jk) :heart:",
+                            "Daigo": "Daigi loves my 딸기잼 :heart:",
+                            "Kyungho" : "Stop calling me KERB :cry: :weary:" },
+    "9.947420992389777e+17": { "J.You": "I'll look out for you next time I'm in SF :heart:"}
+  }
+
+  message = ""
+  artist_id = artist.get_id()
+  if to1_member in special_messages[artist_id]:
+    message = special_messages[artist_id][to1_member] + "\n"
+  return message
 
 def greeting_error(user):
   title = "SOMETHING WENT WRONG! :cry:"
@@ -156,13 +161,15 @@ def get_collection(user):
 
   member_cares = defaultdict(list)
   for member in collection:
-    if member[0] in member_counts:
-      member_counts[member[0]] += 1
-      if member[1] > member_cares[member][1]:
-        member_cares[member][1] = member[1]
+    m = member[0]
+    d = member[1]
+    if m in member_counts:
+      member_counts[m] += 1
+      if member[1] > member_cares[m][1]:
+        member_cares[m][1] = d
     else:
-      member_counts[member[0]] = 1
-      member_cares[member[0]] = [member[1], member[1]]
+      member_counts[m] = 1
+      member_cares[m] = [d, d]
 
   embed = discord.Embed()
   title = ":sparkling_heart: {0} CARE HISTORY :sparkling_heart:".format(artist.stage_name)
@@ -190,7 +197,7 @@ def get_collection(user):
   total_cares = sum(list(member_counts.values()))
 
   if len(sorted_members) > 3 and total_cares > 4:
-    embed.add_field(name="\u200B", value="\u200B", inline=False)
+    embed.add_field(name=("—+" * 10)[:-1], value="\u200B", inline=False)
     name = ":first_place: MOST CARING MEMBER :first_place:"
     value = "hehe **{0}** {1} care you so much :pleading_face:".format(most_caring_member, TO1_MEMBERS[most_caring_member].get_emoji())
     embed.add_field(name=name, value=value)
@@ -203,15 +210,16 @@ def get_collection(user):
   return embed
 
 # group_members is a list of discord member objects
-def add_project_to_db(title, leader, category, is_group, release_date, platform, group_members):
+def add_project_to_db(title, leader, category, is_group, release_date, platforms, group_members):
   id = len(PROJECTS) + 1
   gm_names = sorted([gm.name for gm in group_members])
   artists = [ARTISTS[gm] for gm in gm_names]
-  project = Project(id, title, leader.name, category, is_group, release_date, platform, artists)
+  project = Project(id, title, leader.name, category, is_group, release_date, platforms, artists)
   PROJECTS[id] = project
 
   gm_names_string = ",".join(gm_names)
-  batch_update(PROJECTS_SHEET, id+1, ["A", "H"], [id, title, leader.name, category, is_group, release_date, platform, gm_names_string])
+  platforms_string = "+".join(platforms)
+  batch_update(PROJECTS_SHEET, id+1, ["A", "H"], [id, title, leader.name, category, is_group, release_date, platforms_string, gm_names_string])
   
   emoji = project.get_emoji()
   title = ":sparkles: PROJECT ADDED :sparkles:"
@@ -219,14 +227,14 @@ def add_project_to_db(title, leader, category, is_group, release_date, platform,
   color = discord.Color.random()
   d = project.get_release_date()
   today = date.today()
-  platform = project.get_platform()
+  platforms = project.get_platforms()
 
   if d > today:
-    description += ":calendar_spiral: **COMING OUT {0} ON** {1}".format(d.strftime("%m/%d/%y"), platform)
+    description += ":calendar_spiral: **COMING OUT {0} ON** {1}".format(d.strftime("%m/%d/%y"), platforms)
   elif d == today:
-    description += ":calendar_spiral: **OUT TODAY ON** {0}".format(platform)
+    description += ":calendar_spiral: **OUT TODAY ON** {0}".format(platforms)
   else:
-    description += ":calendar_spiral: **RELEASED ON {0} ON** {1}".format(d.strftime("%m/%d/%y"), platform)
+    description += ":calendar_spiral: **RELEASED ON {0} ON** {1}".format(d.strftime("%m/%d/%y"), platforms)
 
   return discord.Embed(title=title, description=description, color=color)
 
@@ -252,8 +260,8 @@ def get_projects():
     t = project.get_title().upper()
     members = ", ".join(project.get_group_members())
     d = project.get_release_date()
-    platform = project.get_platform()
-    description += "{0} {1} by {2}, released on {3} via {4}\n".format(emoji, t, members, d, platform)
+    platforms = "+".join(project.get_platforms())
+    description += "{0} {1} by {2}, released on {3} via {4}\n".format(emoji, t, members, d, platforms)
 
   color = discord.Color.random()
   embed = discord.Embed(title=title, description=description, color=color)

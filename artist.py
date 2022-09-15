@@ -11,10 +11,10 @@ class Artist:
     self.emoji = self.__get_user_emoji(name)
     self.daily_collection = [] # [ (member_name, date) ]
     self.daily_counter = daily_counter
-    if last_daily_log != "":
-      self.last_daily_log = self.__format_date_from_sheets(last_daily_log)
-    else:
+    if last_daily_log == "":
       self.last_daily_log = ""
+    else:
+      self.last_daily_log = self.__format_date_from_sheets(last_daily_log)
 
   def add_daily_counter(self):
     self.daily_counter += 1
@@ -34,6 +34,9 @@ class Artist:
   def get_id(self):
     return self.id
 
+  def get_stage_name(self):
+    return self.stage_name
+
   def get_daily_counter(self):
     return self.daily_counter
 
@@ -44,7 +47,7 @@ class Artist:
     date_diff = timedelta(days = float(d))
     d = datetime(1899, 12, 30) # google converts date values into ints as a day difference from today to 12/30/1899
     current = d + date_diff
-    return current
+    return current.date()
 
   def __get_user_emoji(self, name):
     user_info = name.split()

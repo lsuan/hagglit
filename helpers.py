@@ -8,7 +8,7 @@ from to1member import TO1Member
 from projects import Project
 
 def is_new_day(d: datetime):
-  return date.today() > d.date()
+  return date.today() > d
 
 def get_index_for(sheet: gspread.Worksheet):
   sheet_values = sheet.get_values()
@@ -61,7 +61,7 @@ def initialize_db():
 
   # sheet = client.create("Test Database")
   # sheet.share('Haggethers@gmail.com', perm_type='user', role='writer')
-  return test
+  return live
 
 def initialize_to1():
   members_sheet = SHEET_DB.get_worksheet(0)
@@ -106,7 +106,6 @@ def initialize_artists():
 
   return artists
 
-# TODO: get group members' Artist class from gm aid
 def initialize_projects():
   project_records = PROJECTS_SHEET.get_all_records(value_render_option="UNFORMATTED_VALUE")
   projects = {}
@@ -115,8 +114,9 @@ def initialize_projects():
     artist_names = set(project["group_members"].split(","))
     artist_names_keys = set(ARTISTS.keys())
     group_members = list(artist_names.intersection(artist_names_keys))
+    platform_emojis = project["platforms"].split("+")
     projects[project["id"]] =  \
-      Project(project["id"], project["title"], project["leader"], project["category"], project["is_group"], project["release_date"], project["platform"], group_members)
+      Project(project["id"], project["title"], project["leader"], project["category"], project["is_group"], project["release_date"], platform_emojis, group_members)
   
   return projects
 

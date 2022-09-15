@@ -1,7 +1,7 @@
 from datetime import datetime, timedelta
 
 class Project:
-  def __init__(self, id, title, leader, category, is_group, release_date, platform, group_members):
+  def __init__(self, id, title, leader, category, is_group, release_date, platforms, group_members):
     self.id = id
     self.title = self.__set_title(title)
     self.leader = leader
@@ -13,7 +13,7 @@ class Project:
     else:
       self.release_date = datetime.strptime(release_date, "%m/%d/%y").date()
     
-    self.platform = platform
+    self.platforms = platforms # [ServerEmoji]
     self.group_members = sorted(group_members) # [Artist]
     self.emoji = self.__set_emoji(category)
 
@@ -38,8 +38,8 @@ class Project:
   def get_release_date(self):
     return self.release_date
 
-  def get_platform(self):
-    return self.platform
+  def get_platformss(self):
+    return self.platforms
 
   def get_emoji(self):
     return self.emoji
