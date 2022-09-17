@@ -1,26 +1,99 @@
 from xml.dom import UserDataHandler
 import discord
-from random import randint
+from random import randint, choice
 
 from helpers import *
 
-def get_slay_percentage(user):
-  percentage = randint(0, 100)
-  message = "{0} :sparkles: SLAY :sparkles: percentage is {1}%".format(user.display_name, randint(0, 100))
-
-  # TODO: FIND OUT HOW TO GET SERVER EMOJIS TO WORK 
-  # if percentage < 25:
-  #   message += " :emoji_5:"
-  # elif percentage < 50:
-  #   message += " :emoji_8:"
-  # elif percentage < 75:
-  #   message += " :emoji_4:"
-  # elif percentage < 100:
-  #   message += " :emoji_9:"
-  # elif percentage == 100:
-  #   message += " :gether:"
+def too_many_args_error(command, params, max, user):
+  title = ":bangbang: **WARNING TOO MANY ARGUMENTS** :bangbang:"
+  description = f"{user.mention} LEA MICHELE! This command takes {max} argument"
+  if max != 1:
+    description += "s" 
   
-  return message
+  description += ", but you gave {0} :rage:\n".format(len(params))
+  description += "***~{0}*** *{1}*".format( command.name, " ".join(command.clean_params.keys()) )
+  color = discord.Color.random()
+  embed = discord.Embed(title=title, description=description, color=color)
+  embed.set_thumbnail(url="https://cdn.discordapp.com/attachments/1018469333522972692/1019899888873517127/unknown.png")
+  embed.set_footer(icon_url=user.display_avatar, text="Silly Gether :rolling_eyes:")
+  return embed
+  
+def get_slay_percentage(user, emojis):
+  percentage = randint(0, 100)
+  slay_urls = [
+    "https://c.tenor.com/onEIkcOsT5YAAAAC/genshin-impact-ruin-guard.gif",
+    "https://c.tenor.com/xtGP-kgXhykAAAAC/slay-happy-doggo.gif",
+    "https://c.tenor.com/iEgxpghsdjwAAAAC/cat-kitten.gif",
+    "https://c.tenor.com/au_s1dXAdFAAAAAC/slay-miku.gif",
+    "https://c.tenor.com/xIVZtDaUPc8AAAAC/rise-and-slay-slay.gif"
+  ]
+  slay_index = randint(0, 4)
+  title = ":nail_care: TO SLAY OR NOT TO SLAY :nail_care:"
+  description = "{0}'s :sparkles: *SLAY* :sparkles: percentage is ***{1}%*** ".format(user.display_name, percentage)
+  color = discord.Color.random()
+
+  embed = discord.Embed(title=title, description=description, color=color)
+  embed.set_image(url=slay_urls[slay_index])
+
+  if percentage == 0:
+    embed.set_thumbnail(url=emojis[0].url)
+  if percentage < 25:
+    embed.set_thumbnail(url=emojis[1].url)
+  elif percentage < 50:
+    embed.set_thumbnail(url=emojis[2].url)
+  elif percentage < 75:
+    embed.set_thumbnail(url=emojis[3].url)
+  elif percentage < 100:
+    embed.set_thumbnail(url=emojis[4].url)
+  elif percentage == 100:
+    embed.set_thumbnail(url=emojis[5].url)
+  
+  return embed
+
+def get_answers(user):
+  answers = [
+    [ "I think that's a GOLDEN idea :thumbsup:",
+      "You would absolutely :sparkles: SLAY :sparkles: doing that~",
+      "#justslaygendtingz :sunglasses:",
+      "What's AFTER LIKE? Not 'no' hehe :white_check_mark:",
+      "WHAT A BEAUTIFUL DAY to do that :sunny:",
+      "NO MORE X with that! Y you questioning? ZO IT :smiling_imp:",
+      "Do it, FLYIN' LIKE BUTTERFLIES, ALWAYS LIKE BUTTERFLIES :butterfly:",
+      "DON'T FEAR NOW! Yes! :mega:",
+      "WHY NOT :question: :question:",
+      "FROM THE MINIMUM TO THE MAX, YES! :chart_with_upwards_trend:",
+      "YEAH LET'S GET DUMB, LET'S GET DUMB :zany:",
+      "GIVE IT EVERYTHING, ALL IN :100:",
+      "HECK YEA CHEERS HO! :beers:"
+    ],
+    [ "You don't got me DRUMMIN DRUMMIN DRAW with that :x:",
+      "I would not SURF ON YOU if you did that :man_surfing:",
+      "I GOT A FEELING that you shouldn't :lotus:",
+      "Sometimes you shouldn't DROP IT LIKE A HOT SAUCE :rolling_eyes:",
+      "You're gonna need a PRAYER if you did that :pray:",
+      "Do not CHASE after that! :skull_crossbones:",
+      "You better TAKE IT SLOW with that thought :octagonal_sign:",
+      "YOU BETTER NOT :ghost: :health_worker:",
+      "Please RE:ALIZE that you shouldn't do that :white_circle: :black_circle:",
+      "Okay let's think about this STEP BY STEP :thinking_face: ... no",
+      "Please FADE that idea AWAY :mirror:",
+      "You won't be a SON OF BEAST if you do that :red_car:",
+      "TAKE A PAUSE and think again :camera_with_flash:"
+    ],
+    [ "Hmm ask again :fearful:",
+      "I'm not sure, maybe try asking a different member :weary:"
+    ]
+  ]
+  members = list(TO1_MEMBERS.keys())
+  member = TO1_MEMBERS[choice(members)]
+  answer_index = randint(0,2)
+  answer = choice(answers[answer_index])
+  title = ":bell: FROM: {0} {1} :bell:".format(member.get_name(), member.get_emoji())
+  description =  f"{user.mention}, " + answer + "\nhehe till next time 사랑해~ :sparkling_heart:"
+  color = discord.Color.from_str(member.get_embed_color())
+  embed = discord.Embed(title=title, description=description, color=color)
+  embed.set_thumbnail(url=member.get_image())
+  return embed
 
 def get_greeting(user):
   global COLLECTIONS_INDEX
@@ -50,7 +123,7 @@ def get_greeting(user):
     color = discord.Color.random()
     if counter == 2:
       description = "You have already used your daily today!"
-    elif counter > 2 and artist.get_daily_counter() < 4:
+    elif counter == 3:
       description = responses[randint(0, len(responses)-1)]
     elif counter == 4:
       description = "DO IT AGAIN AND YOU'RE GETTING TIMED OUT #/REAL :rage:"
@@ -196,7 +269,7 @@ def get_collection(user):
   
   total_cares = sum(list(member_counts.values()))
 
-  if len(sorted_members) > 3 and total_cares > 4:
+  if len(sorted_members) > 3 or total_cares > 4:
     embed.add_field(name=("—+" * 10)[:-1], value="\u200B", inline=False)
     name = ":first_place: MOST CARING MEMBER :first_place:"
     value = "hehe **{0}** {1} care you so much :pleading_face:".format(most_caring_member, TO1_MEMBERS[most_caring_member].get_emoji())
@@ -267,3 +340,47 @@ def get_projects():
   embed = discord.Embed(title=title, description=description, color=color)
 
   return embed
+
+def help_commands(commands, user):
+  care_commands = list(filter(lambda c: c.extras["type"] == "care", commands))
+  project_commands = list(filter(lambda c: c.extras["type"] == "project", commands))
+  misc_commands = list(filter(lambda c: c.extras["type"] == "misc", commands))
+
+  title = ":exclamation: ALL COMMANDS :exclamation:"
+  description = "**BOLDED PARAMS** = **REQUIRED**\n*ITALICIZED PARAMS* = *OPTIONAL*"
+  color = discord.Color.random()
+  embed = discord.Embed(title=title, description=description, color=color)
+  embed.add_field(name=("—+" * 10)[:-1], value="\u200B", inline=False)
+  
+  if len(care_commands) > 0:
+    care_title = ":sparkling_heart: CARE COMMANDS :sparkling_heart:"
+    _get_commands_info(embed, care_title, "", care_commands)
+  embed.add_field(name=("—+" * 10)[:-1], value="\u200B", inline=False)
+  
+  if len(project_commands) > 0:
+    project_title = ":video_camera: PROJECT COMMANDS :video_camera:"
+    _get_commands_info(embed, project_title, "", project_commands)
+  embed.add_field(name=("—+" * 10)[:-1], value="\u200B", inline=False)
+
+  if len(misc_commands) > 0:
+    misc_title = ":partying_face: MISCELLANEOUS COMMANDS: :partying_face:"
+    _get_commands_info(embed, misc_title, "", misc_commands)
+
+  text = f"Requested by {user.display_name}"
+  embed.set_footer(icon_url=user.display_avatar, text=text)
+  return embed
+
+def _get_commands_info(embed, name, value, commands):
+  for command in commands:
+    parameters = command.clean_params.values()    
+    marked_params = []
+
+    for cp in parameters:
+      if cp.kind == 1:
+        marked_params.append("**"+cp.name+"**")
+      elif cp.kind == 2:
+        marked_params.append("*"+cp.name+"*")
+
+    value += ":pushpin: __***~{0}***__ {1}\n".format(command.name, " ".join(marked_params))
+    value += ":pencil: {0}\n".format(command.description)
+  embed.add_field(name=name, value=value)
