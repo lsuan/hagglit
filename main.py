@@ -39,6 +39,14 @@ async def on_command_error(ctx, error):
     embed.set_thumbnail(url="https://cdn.discordapp.com/attachments/1018469333522972692/1019899888873517127/unknown.png")
     embed.set_footer(icon_url=ctx.author.display_avatar, text="Silly Gether")
     await ctx.send(embed=embed)
+  elif isinstance(error, ConnectionError):
+    title = ":skull: CONNECTION ERROR :skull:"
+    description = "Sorry about that! Try ***~{}*** again".format(ctx.command.name)
+    color = discord.Color.red()
+    embed = discord.Embed(title=title, description=description, color=color)
+    emoji = bot.get_emoji(1020181877350469663)
+    embed.set_thumbnail(url=emoji.url)
+    embed.set_footer(icon_url=bot.user.display_avatar.url, text="Silly Bot!")
   else:
     print(error)
 
@@ -138,5 +146,5 @@ async def help(ctx):
   commands = sorted(bot.commands, key=lambda c: c.name)
   embed = help_commands(commands, ctx.author)
   await ctx.send(embed=embed)
-
+ 
 bot.run(os.getenv("TOKEN"))
