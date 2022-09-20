@@ -1,9 +1,13 @@
+from cgitb import text
 import discord
 from discord.ext.commands import Bot
 from discord.ext.commands.errors import MissingRequiredArgument
 import os
 from dotenv import load_dotenv
 from management import *
+from urllib.parse import urlparse
+
+import Paginator
 
 load_dotenv()
 intents = discord.Intents.all()
@@ -40,6 +44,7 @@ async def on_command_error(ctx, error):
     embed.set_footer(icon_url=ctx.author.display_avatar, text="Silly Gether")
     await ctx.send(embed=embed)
   elif isinstance(error, ConnectionError):
+    print("command error?")
     title = ":skull: CONNECTION ERROR :skull:"
     description = "Sorry about that! Try ***~{}*** again".format(ctx.command.name)
     color = discord.Color.red()
@@ -47,6 +52,7 @@ async def on_command_error(ctx, error):
     emoji = bot.get_emoji(1020181877350469663)
     embed.set_thumbnail(url=emoji.url)
     embed.set_footer(icon_url=bot.user.display_avatar.url, text="Silly Bot!")
+    await ctx.send(embed=embed)
   else:
     print(error)
 
@@ -82,13 +88,15 @@ async def menpa(ctx, question):
 async def greeting(ctx):
   try:
     embed = get_greeting(ctx.author)
+    await ctx.send(embed=embed)
     # artist = ARTISTS[ctx.author.name]
     # if artist.get_daily_counter() > 4:
-    #   await ctx.send(f"/timeout user:{ctx.author.mention} duration:60 seconds")
+    #   await ctx.send(f"/timeout user:{ctx.author.mention} duration:60 seconds")    
   except:
+    print("embed error here?")
     embed = greeting_error(ctx.author)
-  
-  await ctx.send(embed=embed)
+    await ctx.send(embed=embed)
+    
 
 @bot.command(description="get your care history", extras={"type": "care"})
 async def collection(ctx, *member):
@@ -126,7 +134,7 @@ async def add_project(ctx, title, category, release_date, platform):
   platform_emojis = []
   for p in platform_split:
     if p.lower() == "twitter":
-      platform_emojis.append("<:twt:1018066923570860062>")
+      platform_emojis.append("<:twitter:1018066923570860062>")
     elif p.lower() == "tiktok":
       platform_emojis.append("<:tiktok:1018067481669140520>")
     elif p.lower() == "smule":
@@ -136,9 +144,65 @@ async def add_project(ctx, title, category, release_date, platform):
   embed = add_project_to_db(title, ctx.author, category, is_group, release_date, platform_emojis, members)
   await ctx.send(embed=embed)
 
+@bot.command(description="change the release date for a project", extras={"type": "project"})
+async def edit_project_release(ctx, project_id, release_date):
+  try:
+    d = datetime.strptime(release_date, "%m/%d/%y")
+    project = PROJECTS[project_id]
+    project.set_release_date(d)
+    update_db(PROJECTS_SHEET, project_id, ["F"], release_date)
+    title = ":video_camera: PROJECT UPDATED! :video_camera:"
+    description = ":spiral_calendar: {0}'s release date was updated to {1}".format(project.get_title(), project.get_release_date())
+    color = discord.Color.random()
+    embed = discord.Embed(title=title, description=description, color=color)
+    emoji = bot.get_emoji(1020879965257998456)
+    embed.set_thumbnail(url=emoji.url)
+    embed.set_footer(text=f"Edit made by {ctx.author.mention}", url=ctx.author.display_avatar.url)
+  except ValueError:
+    title = ":bangbang: INCORRECT DATE FORMAT :bangbang:"
+    description = ":spiral_calendar: Make sure your date is in MM/DD/YY format!"
+    color = discord.Color.red()
+    embed = discord.Embed(title=title, description=description, color=color)
+    emoji = bot.get_emoji(1019006925255483554)
+    embed.set_thumbnail(url=emoji.url)
+    embed.set_footer(text="Silly Gether", icon_url=ctx.author.display_avatar.url)
+  except:
+    title = "SOMETHING WENT WRONG! :cry:"
+    color = discord.Color.red()
+    description = f"{ctx.author.mention}, try **~edit_project** again! :pray:"
+    embed = discord.Embed(title=title, description=description, color=color)
+    emoji = bot.get_emoji(1020181877350469663)
+    embed.set_thumbnail(url=emoji.url)
+    embed.set_footer(icon_url=bot.user.display_avatar.url, text="Silly Bot!")
+
 @bot.command(description="get all the projects", extras={"type": "project"})
 async def projects(ctx):
-  embed = get_projects()
+  pages = get_projects()
+  previous = discord.ui.Button(label="Back", style=discord.ButtonStyle.blurple)
+  next = discord.ui.Button(label="Next", style=discord.ButtonStyle.blurple)
+  page_counter_style = discord.ButtonStyle.grey
+  initial = 0
+  timeout = 500
+  await Paginator.Simple(PreviousButton=previous, NextButton=next, PageCounterStyle=page_counter_style, InitialPage=initial, timeout=timeout).start(ctx, pages)
+  # await ctx.send(embed=embed)
+
+@bot.command(description="gets the social media analytics of a project", extras={"type": "project"})
+async def get_project_stats(ctx, id, url):
+  project = PROJECTS[id]
+  hostname = urlparse(url).hostname
+  hostname_split = hostname.split(".")
+
+  if "twitter" in hostname_split:
+    platform = "twitter"
+    platform_emoji = "<:twitter:1018066923570860062>"
+  elif "tiktok" in hostname_split:
+    platform = "tiktok"
+    platform_emoji = "<:tiktok:1018067481669140520>"
+  elif "smule" in hostname_split:
+    platform = "smule"
+    platform_emoji = "<:smule:1019751433651888129>"
+  
+  embed = get_project_analytics(ctx.author, project, platform, platform_emoji, url)
   await ctx.send(embed=embed)
 
 @bot.command(extras={"type": "help"})

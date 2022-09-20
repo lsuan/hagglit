@@ -20,6 +20,9 @@ class Project:
   def set_group_members(self, members):
     self.group_members = sorted(members)
 
+  def set_release_date(self, release_date):
+    self.release_date = release_date
+
   def get_id(self):
     return self.id
 
@@ -33,12 +36,12 @@ class Project:
     return self.category
 
   def get_members(self):
-    pass
+    return self.group_members
 
   def get_release_date(self):
     return self.release_date
 
-  def get_platformss(self):
+  def get_platforms(self):
     return self.platforms
 
   def get_emoji(self):
