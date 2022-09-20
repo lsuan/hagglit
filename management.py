@@ -1,6 +1,10 @@
-from xml.dom import UserDataHandler
-import discord
+from math import ceil
 from random import randint, choice
+from urllib.parse import urlparse
+
+import discord
+import tweepy
+import os
 
 from helpers import *
 
@@ -198,7 +202,6 @@ def greeting_error(user):
   title = "SOMETHING WENT WRONG! :cry:"
   color = discord.Color.red()
   artist = ARTISTS[user.name]
-  # mention user in description
   description = f"{user.mention}, try **~greeting** again! :pray:"
 
   # check first if collections table was updated
@@ -249,11 +252,6 @@ def get_collection(user):
   sorted_members = sorted(member_counts.items(), key=lambda item: -item[1])
   most_caring_member = sorted_members[0][0]
   color = TO1_MEMBERS[most_caring_member].get_embed_color()
-  
-  # first_care_format = first_care.strftime("%m/%d/%y")
-  # last_care_format = None
-  # if last_care: #and first_care != last_care:
-  #   last_care_format = last_care.strftime("%m/%d/%y")
 
   for member, count in sorted_members:
     times = "time"
@@ -311,34 +309,105 @@ def add_project_to_db(title, leader, category, is_group, release_date, platforms
 
   return discord.Embed(title=title, description=description, color=color)
 
-def _get_projects_by_category(category):
-  projects = dict( filter(lambda p: p[1].get_category() == category, PROJECTS.items()) )
-
-  for _, project in PROJECTS:
-    if project.get_category() == category:
-      projects.append(project)
-
-  return sorted(projects.items(), key=lambda item: int(item))
-
 # TODO: include fields in embed for each project category + solo/group stats
 def get_projects():
+  pages = []
+  project_ids = sorted([pid for pid in PROJECTS], key=lambda pid: int(pid))
+  
+  current_page = 1
   if len(PROJECTS) == 1:
-    title = "1 PROJECT"
+    title = ":video_camera: 1 PROJECT :video_camera:"
   else:
-    title = "{0} PROJECTS".format(len(PROJECTS))
+    title = ":video_camera: {0} PROJECTS :video_camera:".format(len(PROJECTS))
+    if current_page > 1:
+      title += " page {0}".format(current_page)
 
-  description = ""
-  for project in PROJECTS.values():
-    emoji = project.get_emoji()
-    t = project.get_title().upper()
-    members = ", ".join(project.get_group_members())
-    d = project.get_release_date()
-    platforms = "+".join(project.get_platforms())
-    description += "{0} {1} by {2}, released on {3} via {4}\n".format(emoji, t, members, d, platforms)
+  num_dance = len([p for p in PROJECTS if PROJECTS[p].get_category() == "dance-cover"])
+  num_singing = len([p for p in PROJECTS if PROJECTS[p].get_category() == "singing-cover"])
+  num_instrumental = len([p for p in PROJECTS if PROJECTS[p].get_category() == "instrumental-cover"])
+  description = "***{} DANCE COVERS :dancer:\n{} SINGING COVERS :microphone:\n{} INSTRUMENTAL COVERS :musical_keyboard:***".format(
+                    num_dance, num_singing, num_instrumental
+                )
+
+  reps = ceil(len(project_ids) / 10)
+  cutoff = 0
+  for rep in range(reps):
+    color = discord.Color.random()
+    embed = discord.Embed(title=title, description=description, color=color)
+    for i in range(cutoff, len(project_ids)):
+      if i == (10 + cutoff):
+        cutoff = i
+        current_page += 1
+        break
+      project = PROJECTS[project_ids[i]]
+      id = project.get_id()
+      emoji = project.get_emoji()
+      t = project.get_title().upper()
+      members = [ARTISTS[m].get_stage_name() for m in project.get_members()]
+      d = project.get_release_date().strftime("%m/%d/%y")
+      platforms = "+".join(project.get_platforms())
+      name = "{0}. {1} {2}".format(id, t, emoji)
+      value = ":bust_in_silhouette: by: {}\n".format(", ".join(members))
+      value += ":calendar_spiral: released: {} on {}".format(d, platforms)
+      embed.add_field(name=name, value=value)
+      if i % 2 == 1:
+        embed.add_field(name="\u200B", value="\u200B", inline=False)
+    pages.append(embed)
+    title = ":video_camera: {0} PROJECTS :video_camera:".format(len(PROJECTS))
+    if current_page > 1:
+      title += " (page {0})".format(current_page)
+    embed = discord.Embed(title=title, description=description, color=color)
+
+  return pages
+  # for project in PROJECTS.values():
+  #   id = project.get_id()
+  #   emoji = project.get_emoji()
+  #   t = project.get_title().upper()
+  #   members = [ARTISTS[m].get_stage_name() for m in project.get_members()]
+  #   d = project.get_release_date()
+  #   platforms = "+".join(project.get_platforms())
+  #   name = "{0}. {1} {2}".format(id, t, emoji)
+  #   value = ":bust_in_silhouette: by: {}\n".format(", ".join(members))
+  #   value += ":calendar_spiral: released: {} on {}".format(d, platforms)
+  #   # embed.add_field(name=("—+" * 10)[:-1], value="\u200B", inline=False)
+  #   embed.add_field(name=name, value=value)
+  return embed
+
+def get_twitter_analytics(url):
+  api_key = os.getenv("TWITTER_KEY")
+  api_key_secret = os.getenv("TWITTER_KEY_SECRET")
+  bearer_token = os.getenv("TWITTER_BEARER_TOKEN")
+  access_token = os.getenv("TWITTER_ACCESS_TOKEN")
+  access_token_secret = os.getenv("TWITTER_ACCESS_TOKEN_SECRET")
+  
+  # [attachments,author_id,context_annotations,conversation_id,created_at,entities,geo,id,in_reply_to_user_id,lang,non_public_metrics,organic_metrics,possibly_sensitive,promoted_metrics,public_metrics,referenced_tweets,reply_settings,source,text,withheld]
+  client = tweepy.Client(bearer_token=bearer_token, consumer_key=api_key, consumer_secret=api_key_secret, access_token=access_token, access_token_secret=access_token_secret)
+  tweet_fields = ["public_metrics", "conversation_id", "context_annotations", "geo", "entities"]
+  
+  tweet_path = urlparse(url).path
+  tweet_id = int(tweet_path.split("/")[-1])
+  tweet = client.get_tweet(tweet_id, tweet_fields=tweet_fields)
+  public_metrics = tweet.data.public_metrics
+  public_metrics["total"] = sum(list(public_metrics.values()))
+  return public_metrics
+
+def get_project_analytics(user, project, platform, platform_emoji, url):
+  title = "{0} {1} {2} - RELEASED ON {2} {3}".format(platform_emoji, project.get_title(), project.get_emoji(), project.get_release_date(), platform_emoji)
+  description = "{0} ANALYTICS\n".format(platform)
+
+  metrics = None
+  if platform == "twitter":
+    metrics = get_twitter_analytics(url)
+
+  description += ":heart: LIKES = {0}".format(metrics["like_count"])
+  description += ":thought_balloon: REPLIES = {0}".format(metrics["reply_count"])
+  description += ":repeat: RETWEETS = {0}".format(metrics["retweet_count"])
+  description += ":pencil: QUOTES = {0}".format(metrics["quote_count"])
+  description += ":heavy_equals_sign: TOTAL INTERACTIONS = {0}".format(metrics["total"])
 
   color = discord.Color.random()
   embed = discord.Embed(title=title, description=description, color=color)
-
+  embed.set_footer(text="Requested by {0}".format(user.display_name), icon_url=user.display_avatar.url)
   return embed
 
 def help_commands(commands, user):
