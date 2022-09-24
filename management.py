@@ -343,7 +343,7 @@ def get_projects():
       id = project.get_id()
       emoji = project.get_emoji()
       t = project.get_title().upper()
-      members = [ARTISTS[m].get_stage_name() for m in project.get_members()]
+      members = [m.get_stage_name() for m in project.get_members()]
       d = project.get_release_date().strftime("%m/%d/%y")
       platforms = "+".join(project.get_platforms())
       name = "{0}. {1} {2}".format(id, t, emoji)

@@ -56,7 +56,7 @@ def initialize_db():
   credentials = ServiceAccountCredentials.from_json_keyfile_name("gs_credentials.json", scope)
   client = gspread.authorize(credentials)
   
-  test = client.open("Test Database")
+  # test = client.open("Test Database")
   live = client.open("Database")
 
   # sheet = client.create("Test Database")
@@ -113,7 +113,7 @@ def initialize_projects():
   for project in project_records:
     artist_names = set(project["group_members"].split(","))
     artist_names_keys = set(ARTISTS.keys())
-    group_members = list(artist_names.intersection(artist_names_keys))
+    group_members = [ARTISTS[artist] for artist in artist_names.intersection(artist_names_keys)]
     platform_emojis = project["platforms"].split("+")
     projects[project["id"]] =  \
       Project(project["id"], project["title"], project["leader"], project["category"], project["is_group"], project["release_date"], platform_emojis, group_members)

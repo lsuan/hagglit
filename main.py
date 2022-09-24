@@ -19,42 +19,42 @@ guild_id = int(os.getenv("GUILD_ID"))
 async def on_ready():
   print("{0.user} is ready to slay!".format(bot))
 
-@bot.event
-async def on_command_error(ctx, error):
-  if isinstance(error, MissingRequiredArgument):
-    command = ctx.command
-    params = command.clean_params
-    count = 0
-    missing_param = str(error).split()[0]
+# @bot.event
+# async def on_command_error(ctx, error):
+#   if isinstance(error, MissingRequiredArgument):
+#     command = ctx.command
+#     params = command.clean_params
+#     count = 0
+#     missing_param = str(error).split()[0]
     
-    for param in params:
-      if param == missing_param:
-        break
-      count += 1
+#     for param in params:
+#       if param == missing_param:
+#         break
+#       count += 1
     
-    title = ":bangbang: **WARNING MISSING REQUIRED ARGUMENTS** :bangbang:"
-    description = f"{ctx.author.mention} LEA MICHELE! This command takes {len(params)} argument"   
-    if len(params) != 1:
-      description += "s"
-    description += ", but you only gave {0} :cry:\n".format(count)
-    description += "***~{0}*** **{1}**".format( command.name, " ".join(params.keys()) )
-    color = discord.Color.red()
-    embed = discord.Embed(title=title, description=description, color=color)
-    embed.set_thumbnail(url="https://cdn.discordapp.com/attachments/1018469333522972692/1019899888873517127/unknown.png")
-    embed.set_footer(icon_url=ctx.author.display_avatar, text="Silly Gether")
-    await ctx.send(embed=embed)
-  elif isinstance(error, ConnectionError):
-    print("command error?")
-    title = ":skull: CONNECTION ERROR :skull:"
-    description = "Sorry about that! Try ***~{}*** again".format(ctx.command.name)
-    color = discord.Color.red()
-    embed = discord.Embed(title=title, description=description, color=color)
-    emoji = bot.get_emoji(1020181877350469663)
-    embed.set_thumbnail(url=emoji.url)
-    embed.set_footer(icon_url=bot.user.display_avatar.url, text="Silly Bot!")
-    await ctx.send(embed=embed)
-  else:
-    print(error)
+#     title = ":bangbang: **WARNING MISSING REQUIRED ARGUMENTS** :bangbang:"
+#     description = f"{ctx.author.mention} LEA MICHELE! This command takes {len(params)} argument"   
+#     if len(params) != 1:
+#       description += "s"
+#     description += ", but you only gave {0} :cry:\n".format(count)
+#     description += "***~{0}*** **{1}**".format( command.name, " ".join(params.keys()) )
+#     color = discord.Color.red()
+#     embed = discord.Embed(title=title, description=description, color=color)
+#     embed.set_thumbnail(url="https://cdn.discordapp.com/attachments/1018469333522972692/1019899888873517127/unknown.png")
+#     embed.set_footer(icon_url=ctx.author.display_avatar, text="Silly Gether")
+#     await ctx.send(embed=embed)
+#   elif isinstance(error, ConnectionError):
+#     print("command error?")
+#     title = ":skull: CONNECTION ERROR :skull:"
+#     description = "Sorry about that! Try ***~{}*** again".format(ctx.command.name)
+#     color = discord.Color.red()
+#     embed = discord.Embed(title=title, description=description, color=color)
+#     emoji = bot.get_emoji(1020181877350469663)
+#     embed.set_thumbnail(url=emoji.url)
+#     embed.set_footer(icon_url=bot.user.display_avatar.url, text="Silly Bot!")
+#     await ctx.send(embed=embed)
+#   else:
+#     print(error)
 
 @bot.command(description="find out how much slay % you have", extras={"type": "misc"})
 async def slaygend(ctx, *member):
@@ -119,16 +119,16 @@ async def collection(ctx, *member):
 @bot.command(description="add a project to be released on social media", extras={"type": "project"})
 async def add_project(ctx, title, category, release_date, platform):
   guild = bot.get_guild(guild_id)
-  roles =  guild.roles
-  role = filter(lambda r: r.name.endswith(category), roles)
-  for r in role:
-    break
+  roles = guild.roles
+  role = filter(lambda r: r.name.startswith(title) and r.name.endswith(category), roles)
 
-  members_roles = defaultdict(set)
-  for gm in guild.members:
-    for role in gm.roles:
-      members_roles[role.name].add(gm)
-  members = members_roles[r.name]
+  if role:
+    members_roles = defaultdict(set)
+    for gm in guild.members:
+      for role in gm.roles:
+        members_roles[role.name].add(gm)
+    members = members_roles[role.name]
+  is_group = len(members) > 1
 
   platform_split = platform.split("+")
   platform_emojis = []
@@ -140,7 +140,6 @@ async def add_project(ctx, title, category, release_date, platform):
     elif p.lower() == "smule":
       platform.emojis.append("<:smule:1019751433651888129>")
 
-  is_group = len(members) > 1
   embed = add_project_to_db(title, ctx.author, category, is_group, release_date, platform_emojis, members)
   await ctx.send(embed=embed)
 

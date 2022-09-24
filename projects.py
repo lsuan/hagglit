@@ -1,4 +1,5 @@
 from datetime import datetime, timedelta
+from tokenize import group
 
 class Project:
   def __init__(self, id, title, leader, category, is_group, release_date, platforms, group_members):
@@ -14,7 +15,7 @@ class Project:
       self.release_date = datetime.strptime(release_date, "%m/%d/%y").date()
     
     self.platforms = platforms # [ServerEmoji]
-    self.group_members = sorted(group_members) # [Artist]
+    self.group_members = sorted(group_members, key=lambda gm: gm.get_stage_name()) # [Artist]
     self.emoji = self.__set_emoji(category)
 
   def set_group_members(self, members):
