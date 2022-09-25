@@ -173,6 +173,7 @@ def get_greeting(user):
 def _get_special_message(artist, to1_member):
   special_messages = {
     "2.3440408228921344e+17": { "Donggeon": "Wow I noticed your SURF outfit at KCON 2022 LA :thumbsup: :heart:" },
+    "2.3440408228921344e+17": { "J.You": "Ray... will you give your purse for Kuya J.You~ :smirk: :blush:"},
     "3.5477441436739174e+17": { "Jaeyun" : "I care and love you the most hehe :heart_hands: :blush:", 
                             "Kyungho": "FINALLY IT'S MY TURN TO LOVE YOU :sunglasses: :heart:" },
     "4.0123820780866765e+17": { "Renta": "Renta care you belly belly much Tate :smiling_face_with_3_hearts:" },
