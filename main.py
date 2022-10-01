@@ -54,6 +54,7 @@ async def on_command_error(ctx, error):
     embed.set_footer(icon_url=bot.user.display_avatar.url, text="Silly Bot!")
     await ctx.send(embed=embed)
   else:
+    print(type(error))
     print(error)
 
 @bot.command(description="find out how much slay % you have", extras={"type": "misc"})
@@ -93,7 +94,6 @@ async def greeting(ctx):
     # if artist.get_daily_counter() > 4:
     #   await ctx.send(f"/timeout user:{ctx.author.mention} duration:60 seconds")    
   except:
-    print("embed error here?")
     embed = greeting_error(ctx.author)
     await ctx.send(embed=embed)
     
@@ -187,7 +187,7 @@ async def projects(ctx):
 
 @bot.command(description="gets the social media analytics of a project", extras={"type": "project"})
 async def get_project_stats(ctx, id, url):
-  project = PROJECTS[id]
+  project = PROJECTS[int(id)]
   hostname = urlparse(url).hostname
   hostname_split = hostname.split(".")
 

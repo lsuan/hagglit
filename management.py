@@ -1,5 +1,6 @@
 from math import ceil
 from random import randint, choice
+from unittest import result
 from urllib.parse import urlparse
 
 import discord
@@ -383,7 +384,7 @@ def get_twitter_analytics(url):
   
   # [attachments,author_id,context_annotations,conversation_id,created_at,entities,geo,id,in_reply_to_user_id,lang,non_public_metrics,organic_metrics,possibly_sensitive,promoted_metrics,public_metrics,referenced_tweets,reply_settings,source,text,withheld]
   client = tweepy.Client(bearer_token=bearer_token, consumer_key=api_key, consumer_secret=api_key_secret, access_token=access_token, access_token_secret=access_token_secret)
-  tweet_fields = ["public_metrics", "conversation_id", "context_annotations", "geo", "entities"]
+  tweet_fields = ["public_metrics", "conversation_id"]
   
   tweet_path = urlparse(url).path
   tweet_id = int(tweet_path.split("/")[-1])
@@ -393,17 +394,20 @@ def get_twitter_analytics(url):
   return public_metrics
 
 def get_project_analytics(user, project, platform, platform_emoji, url):
-  title = "{0} {1} {2} - RELEASED ON {2} {3}".format(platform_emoji, project.get_title(), project.get_emoji(), project.get_release_date(), platform_emoji)
-  description = "{0} ANALYTICS\n".format(platform)
+  project_title = project.get_title().upper()
+  if "_" in project_title:
+    project_title = " ".join(project_title.split("_"))
+  title = "{0} {1} {0} - RELEASED ON {2}".format(project.get_emoji(), project_title, project.get_release_date())
+  description = "{0} **ANALYTICS**\n".format(platform_emoji)
 
   metrics = None
   if platform == "twitter":
     metrics = get_twitter_analytics(url)
 
-  description += ":heart: LIKES = {0}".format(metrics["like_count"])
-  description += ":thought_balloon: REPLIES = {0}".format(metrics["reply_count"])
-  description += ":repeat: RETWEETS = {0}".format(metrics["retweet_count"])
-  description += ":pencil: QUOTES = {0}".format(metrics["quote_count"])
+  description += ":heart: LIKES = {0}\n".format(metrics["like_count"])
+  description += ":thought_balloon: REPLIES = {0}\n".format(metrics["reply_count"])
+  description += ":repeat: RETWEETS = {0}\n".format(metrics["retweet_count"])
+  description += ":pencil: QUOTES = {0}\n".format(metrics["quote_count"])
   description += ":heavy_equals_sign: TOTAL INTERACTIONS = {0}".format(metrics["total"])
 
   color = discord.Color.random()
