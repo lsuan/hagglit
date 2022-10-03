@@ -1,7 +1,7 @@
 from cgitb import text
 import discord
 from discord.ext.commands import Bot
-from discord.ext.commands.errors import MissingRequiredArgument
+from discord.ext.commands.errors import MissingRequiredArgument, CommandInvokeError
 import os
 from dotenv import load_dotenv
 from management import *
@@ -43,16 +43,17 @@ async def on_command_error(ctx, error):
     embed.set_thumbnail(url="https://cdn.discordapp.com/attachments/1018469333522972692/1019899888873517127/unknown.png")
     embed.set_footer(icon_url=ctx.author.display_avatar, text="Silly Gether")
     await ctx.send(embed=embed)
-  elif isinstance(error, ConnectionError):
-    print("command error?")
-    title = ":skull: CONNECTION ERROR :skull:"
-    description = "Sorry about that! Try ***~{}*** again".format(ctx.command.name)
-    color = discord.Color.red()
-    embed = discord.Embed(title=title, description=description, color=color)
-    emoji = bot.get_emoji(1020181877350469663)
-    embed.set_thumbnail(url=emoji.url)
-    embed.set_footer(icon_url=bot.user.display_avatar.url, text="Silly Bot!")
-    await ctx.send(embed=embed)
+  elif isinstance(error, CommandInvokeError):
+    print(str(error))
+    if "ConnectionError" in str(error):
+      title = ":skull: CONNECTION ERROR :skull:"
+      description = "Sorry about that! Try ***~{}*** again".format(ctx.command.name)
+      color = discord.Color.red()
+      embed = discord.Embed(title=title, description=description, color=color)
+      emoji = bot.get_emoji(1020181877350469663)
+      embed.set_thumbnail(url=emoji.url)
+      embed.set_footer(icon_url=bot.user.display_avatar.url, text="Silly Bot!")
+      await ctx.send(embed=embed)
   else:
     print(type(error))
     print(error)
