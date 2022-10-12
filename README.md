@@ -8,14 +8,14 @@ This is a Private Discord bot for my friends' server. It has some fun and useful
 - Twitter API <code>tweepy.py</code>
 
 ### Commands
-- ~greeting: randomly returns a member for a daily greeting
-- ~collection: displays a user's greeting history
-- ~help: shows all the commands and their functions
-- ~add_project: adds a project and stores its information to the database
-- ~projects: lists all the projects
-- ~get_project_analytics: gets tweet metrics for a project that was posted on Twitter
-- ~menpa: returns a 'yes' / 'no' / 'ask again' answer
-- ~slaygend: gives the user a random 'slay' percentage
+- **~greeting**: randomly returns a member for a daily greeting
+- **~collection**: displays a user's greeting history
+- **~help**: shows all the commands and their functions
+- **~add_project**: adds a project and stores its information to the database
+- **~projects**: lists all the projects
+- **~get_project_analytics**: gets tweet metrics for a project that was posted on Twitter
+- **~menpa**: returns a 'yes' / 'no' / 'ask again' answer
+- **~slaygend**: gives the user a random 'slay' percentage
 
 ### Summary and Takeaways
 - Used <code>discord.py</code> and Discord Objects to access various information for server members, roles, etc.
