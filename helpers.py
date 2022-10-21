@@ -78,7 +78,6 @@ def initialize_artists():
   collections_records = COLLECTIONS_SHEET.get_all_records(value_render_option="UNFORMATTED_VALUE")
 
   artists = {}
-  artists_ids = {}
   for artist in artists_records:
     counter = None
     if artist["id"] != "":
@@ -86,8 +85,8 @@ def initialize_artists():
         counter = 0
       else:
         counter = artist["daily_counter"]
-      artists[artist["name"]] = Artist(str(artist["id"]).lower(), artist["stage_name"], counter, artist["last_daily_log"])
-      artists_ids[str(artist["id"]).lower()] = artist["name"]
+      id = "{:.16e}".format(artist["id"])
+      artists[id] = Artist(id, artist["stage_name"], counter, artist["last_daily_log"])
 
   for artist in artists.values():
     ldl = artist.get_last_daily_log()
@@ -98,11 +97,11 @@ def initialize_artists():
   
   for cr in collections_records:
     if cr["date_received"] != "":
-      artists_collections[str(cr["aid"])].append( (cr["member_name"], datetime.strptime(cr["date_received"], "%m/%d/%y").date()) )
+      id = "{:.16e}".format(cr["aid"])
+      artists_collections[id].append( (cr["member_name"], datetime.strptime(cr["date_received"], "%m/%d/%y").date()) )
 
   for id, collection in artists_collections.items():
-    artist_name = artists_ids[id]
-    artists[artist_name].set_daily_collection(collection)  
+    artists[id].set_daily_collection(collection)  
 
   return artists
 
@@ -112,8 +111,12 @@ def initialize_projects():
 
   for project in project_records:
     artist_names = set(project["group_members"].split(","))
-    artist_names_keys = set(ARTISTS.keys())
-    group_members = [ARTISTS[artist] for artist in artist_names.intersection(artist_names_keys)]
+    # group_members = [ARTISTS[artist.get_id()] for artist in artist_names.intersection(artist_names_keys)]
+    group_members = []
+    for name in artist_names:
+      for artist in ARTISTS.values():
+        if name == artist.get_stage_name():
+          group_members.append(artist)
     platform_emojis = project["platforms"].split("+")
     projects[project["id"]] =  \
       Project(project["id"], project["title"], project["leader"], project["category"], project["is_group"], project["release_date"], platform_emojis, group_members)
@@ -126,12 +129,10 @@ SHEET_DB = initialize_db()
 ARTISTS_SHEET = SHEET_DB.get_worksheet(1)
 COLLECTIONS_SHEET = SHEET_DB.get_worksheet(2)
 PROJECTS_SHEET = SHEET_DB.get_worksheet(3)
-# GROUPS_SHEET = SHEET_DB.get_worksheet(4)
 
 # DB INDEX GLOBALS (for insert methods)
 COLLECTIONS_INDEX = get_index_for(COLLECTIONS_SHEET)
 PROJECTS_INDEX = get_index_for(PROJECTS_SHEET)
-# GROUPS_INDEX = get_index_for(GROUPS_SHEET)
 
 # CLASS GLOBALS
 TO1_MEMBERS = initialize_to1()

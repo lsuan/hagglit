@@ -104,7 +104,8 @@ def get_greeting(user):
   global COLLECTIONS_INDEX
   index = randint(0, len(TO1_MEMBERS.keys())-1)
   member = list(TO1_MEMBERS.keys())[index]
-  artist = ARTISTS[user.name]
+  id = "{:.16e}".format(user.id)
+  artist = ARTISTS[id]
 
   ldl = artist.get_last_daily_log()
   if ldl != "" and is_new_day(ldl):
@@ -203,7 +204,8 @@ def _get_special_message(artist, to1_member):
 def greeting_error(user):
   title = "SOMETHING WENT WRONG! :cry:"
   color = discord.Color.red()
-  artist = ARTISTS[user.name]
+  id = "{:.16e}".format(user.id)
+  artist = ARTISTS[id]
   description = f"{user.mention}, try **~greeting** again! :pray:"
 
   # check first if collections table was updated
@@ -221,7 +223,8 @@ def greeting_error(user):
   return discord.Embed(title=title, description=description, color=color)
 
 def get_collection(user):
-  artist = ARTISTS[user.name]
+  id = "{:.16e}".format(user.id)
+  artist = ARTISTS[id]
   collection = artist.get_daily_collection()
 
   if len(collection) == 0:
@@ -285,13 +288,13 @@ def get_collection(user):
 # group_members is a list of discord member objects
 def add_project_to_db(title, leader, category, is_group, release_date, platforms, group_members):
   id = len(PROJECTS) + 1
-  gm_names = sorted([gm.name for gm in group_members])
-  artists = [ARTISTS[gm] for gm in gm_names]
+  gm_names = sorted([gm.display_name for gm in group_members])
+  artists = [ARTISTS["{:.16e}".format(gm.id)] for gm in group_members]
   project = Project(id, title, leader.name, category, is_group, release_date, platforms, artists)
   PROJECTS[id] = project
 
   gm_names_string = ",".join(gm_names)
-  platforms_string = "+".join(platforms)
+  platforms_string = "+".join(project.get_platforms())
   batch_update(PROJECTS_SHEET, id+1, ["A", "H"], [id, title, leader.name, category, is_group, release_date, platforms_string, gm_names_string])
   
   emoji = project.get_emoji()
@@ -300,14 +303,13 @@ def add_project_to_db(title, leader, category, is_group, release_date, platforms
   color = discord.Color.random()
   d = project.get_release_date()
   today = date.today()
-  platforms = project.get_platforms()
 
   if d > today:
-    description += ":calendar_spiral: **COMING OUT {0} ON** {1}".format(d.strftime("%m/%d/%y"), platforms)
+    description += ":calendar_spiral: **COMING OUT {0} ON** {1}".format(d.strftime("%m/%d/%y"), platforms_string)
   elif d == today:
-    description += ":calendar_spiral: **OUT TODAY ON** {0}".format(platforms)
+    description += ":calendar_spiral: **OUT TODAY ON** {0}".format(platforms_string)
   else:
-    description += ":calendar_spiral: **RELEASED ON {0} ON** {1}".format(d.strftime("%m/%d/%y"), platforms)
+    description += ":calendar_spiral: **RELEASED ON {0} ON** {1}".format(d.strftime("%m/%d/%y"), platforms_string)
 
   return discord.Embed(title=title, description=description, color=color)
 
@@ -333,7 +335,7 @@ def get_projects():
 
   reps = ceil(len(project_ids) / 10)
   cutoff = 0
-  for rep in range(reps):
+  for _rep in range(reps):
     color = discord.Color.random()
     embed = discord.Embed(title=title, description=description, color=color)
     for i in range(cutoff, len(project_ids)):
@@ -361,19 +363,6 @@ def get_projects():
     embed = discord.Embed(title=title, description=description, color=color)
 
   return pages
-  # for project in PROJECTS.values():
-  #   id = project.get_id()
-  #   emoji = project.get_emoji()
-  #   t = project.get_title().upper()
-  #   members = [ARTISTS[m].get_stage_name() for m in project.get_members()]
-  #   d = project.get_release_date()
-  #   platforms = "+".join(project.get_platforms())
-  #   name = "{0}. {1} {2}".format(id, t, emoji)
-  #   value = ":bust_in_silhouette: by: {}\n".format(", ".join(members))
-  #   value += ":calendar_spiral: released: {} on {}".format(d, platforms)
-  #   # embed.add_field(name=("—+" * 10)[:-1], value="\u200B", inline=False)
-  #   embed.add_field(name=name, value=value)
-  return embed
 
 def get_twitter_analytics(url):
   api_key = os.getenv("TWITTER_KEY")
@@ -395,8 +384,8 @@ def get_twitter_analytics(url):
 
 def get_project_analytics(user, project, platform, platform_emoji, url):
   project_title = project.get_title().upper()
-  if "_" in project_title:
-    project_title = " ".join(project_title.split("_"))
+  if "-" in project_title:
+    project_title = " ".join(project_title.split("-"))
   title = "{0} {1} {0} - RELEASED ON {2}".format(project.get_emoji(), project_title, project.get_release_date())
   description = "{0} **ANALYTICS**\n".format(platform_emoji)
 
