@@ -91,7 +91,7 @@ def initialize_artists():
   for artist in artists.values():
     ldl = artist.get_last_daily_log()
     if ldl != "" and is_new_day(ldl):
-      update_db(ARTISTS_SHEET, artist.get_id(), 4, 0)
+      update_db(ARTISTS_SHEET, float(artist.get_id()), 4, 0)
 
   artists_collections = defaultdict(list)
   

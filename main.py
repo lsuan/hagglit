@@ -1,4 +1,5 @@
 from cgitb import text
+from copy import error
 import discord
 from discord.ext.commands import Bot
 from discord.ext.commands.errors import MissingRequiredArgument, CommandInvokeError
@@ -94,7 +95,9 @@ async def greeting(ctx):
     # artist = ARTISTS[ctx.author.name]
     # if artist.get_daily_counter() > 4:
     #   await ctx.send(f"/timeout user:{ctx.author.mention} duration:60 seconds")    
-  except:
+  except Exception as e:
+    print("Erere")
+    print(e)
     embed = greeting_error(ctx.author)
     await ctx.send(embed=embed)
     
