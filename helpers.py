@@ -1,5 +1,5 @@
 from collections import defaultdict
-from datetime import datetime, date, timedelta
+from datetime import datetime, date
 import gspread
 from oauth2client.service_account import ServiceAccountCredentials
 

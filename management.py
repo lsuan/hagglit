@@ -192,7 +192,8 @@ def _get_special_message(artist, to1_member):
     "7.5634815120769024e+17": { "Jaeyun": "Sorry I made Lee pergant but I still love you (cheater jk) :heart:",
                             "Daigo": "Daigi loves my 딸기잼 :heart:",
                             "Kyungho" : "Stop calling me KERB :cry: :weary:" },
-    "9.9474209923897766e+17": { "J.You": "I'll look out for you next time I'm in SF :heart:"}
+    "9.9474209923897766e+17": { "J.You": "I'll look out for you next time I'm in SF :heart:",
+                            "Donggeon": "Yo bro, when will I overtake J.You as your bias? When bro? :thinking: :sweat_smile:"}
   }
 
   message = ""
@@ -202,7 +203,7 @@ def _get_special_message(artist, to1_member):
   return message
 
 def greeting_error(user):
-  title = "SOMETHING WENT WRONG! :cry:"
+  title = ":skull: CONNECTION ERROR :skull:"
   color = discord.Color.red()
   id = "{:.16e}".format(user.id)
   artist = ARTISTS[id]
@@ -220,7 +221,8 @@ def greeting_error(user):
     batch_update(ARTISTS_SHEET, artist_row, ["D", "E"], ["", ""])
     artist.set_daily_counter(0)
 
-  return discord.Embed(title=title, description=description, color=color)
+  embed = discord.Embed(title=title, description=description, color=color)
+  return embed
 
 def get_collection(user):
   id = "{:.16e}".format(user.id)
