@@ -31,6 +31,7 @@ def get_record_row(sheet_values, first_attr):
     if type(first_attr) is float:
       new_first_attr = "{:.16e}".format(first_attr)
     
+    # handles initializing ids after reading from the sheet
     if new_first_attr and sheet_value == new_first_attr:
       row = i+1
       break
@@ -61,12 +62,12 @@ def initialize_db():
   credentials = ServiceAccountCredentials.from_json_keyfile_name("gs_credentials.json", scope)
   client = gspread.authorize(credentials)
   
-  test = client.open("Test Database")
-  # live = client.open("Database")
+  # test = client.open("Test Database")
+  live = client.open("Database")
 
   # sheet = client.create("Test Database")
   # sheet.share('Haggethers@gmail.com', perm_type='user', role='writer')
-  return test
+  return live
 
 def initialize_to1():
   members_sheet = SHEET_DB.get_worksheet(0)
