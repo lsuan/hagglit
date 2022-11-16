@@ -105,7 +105,9 @@ def get_greeting(user):
   index = randint(0, len(TO1_MEMBERS.keys())-1)
   member = list(TO1_MEMBERS.keys())[index]
   id = "{:.16e}".format(user.id)
+  print(id)
   artist = ARTISTS[id]
+  print(artist)
 
   ldl = artist.get_last_daily_log()
   if ldl != "" and is_new_day(ldl):

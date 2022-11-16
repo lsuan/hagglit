@@ -23,8 +23,18 @@ def get_index_for(sheet: gspread.Worksheet):
 
 def get_record_row(sheet_values, first_attr):
   row = 2
+  new_first_attr = None
   for i in range(0, len(sheet_values)):
-    if str(sheet_values[i][0]) == first_attr:
+    sheet_value = sheet_values[i][0]
+    if type(sheet_value) is float:
+      sheet_value = "{:.16e}".format(sheet_value)
+    if type(first_attr) is float:
+      new_first_attr = "{:.16e}".format(first_attr)
+    
+    if new_first_attr and sheet_value == new_first_attr:
+      row = i+1
+      break
+    elif sheet_value == first_attr:
       row = i+1
       break
   return row
@@ -34,11 +44,6 @@ def update_db(sheet: gspread.Worksheet, first_attr, col, value):
   sheet_values = sheet.get_values(value_render_option="UNFORMATTED_VALUE")
   row = get_record_row(sheet_values, first_attr)
   sheet.update_cell(row, col, value)
-
-# def _insert(sheet: gspread.Worksheet, col, value):
-#   sheet_values = sheet.get_all_values()
-#   empty_cell_row = len(sheet_values)
-#   sheet.update_cell(empty_cell_row, col, value)
 
 # cols is a list of letters A-Z that correspond to the spreadsheet
 def batch_update(sheet: gspread.Worksheet, row, cols, values):
@@ -56,12 +61,12 @@ def initialize_db():
   credentials = ServiceAccountCredentials.from_json_keyfile_name("gs_credentials.json", scope)
   client = gspread.authorize(credentials)
   
-  # test = client.open("Test Database")
-  live = client.open("Database")
+  test = client.open("Test Database")
+  # live = client.open("Database")
 
   # sheet = client.create("Test Database")
   # sheet.share('Haggethers@gmail.com', perm_type='user', role='writer')
-  return live
+  return test
 
 def initialize_to1():
   members_sheet = SHEET_DB.get_worksheet(0)
