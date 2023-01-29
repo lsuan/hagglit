@@ -1,13 +1,14 @@
+from datetime import date, timedelta
+from dotenv import load_dotenv
+from helpers import *
 from math import ceil
 from random import randint, choice
-from unittest import result
 from urllib.parse import urlparse
-
 import discord
 import tweepy
 import os
 
-from helpers import *
+load_dotenv()
 
 def too_many_args_error(command, params, max, user):
   title = ":bangbang: **WARNING TOO MANY ARGUMENTS** :bangbang:"
@@ -105,17 +106,19 @@ def get_greeting(user):
   index = randint(0, len(TO1_MEMBERS.keys())-1)
   member = list(TO1_MEMBERS.keys())[index]
   id = "{:.16e}".format(user.id)
-  print(id)
   artist = ARTISTS[id]
-  print(artist)
 
   ldl = artist.get_last_daily_log()
   if ldl != "" and is_new_day(ldl):
     artist.set_daily_counter(0)
 
   artist_id = artist.get_id()
-
   artist.add_daily_counter()
+
+  # from jan 30, 2023 to mar 21, 2023, nikko will only get yeojeong care
+  if artist_id == NIKKO_ID and ((date.today() - timedelta(days = 50)) <= date(2023, 1, 30)):
+    member = TO1_MEMBERS["Yeojeong"]
+
   update_db(ARTISTS_SHEET, float(artist_id), 4, artist.get_daily_counter())
 
   responses = [
@@ -137,7 +140,6 @@ def get_greeting(user):
       description = "DO IT AGAIN AND YOU'RE GETTING TIMED OUT #/REAL :rage:"
     elif counter == 5:
       description = "jk idk how to do that yet LOL but still stop spamming"
-      # description = ":grin:" 
     elif counter >= 6:
       description = "DID THE TIMEOUT WORK?"
 
@@ -176,25 +178,25 @@ def get_greeting(user):
 
 def _get_special_message(artist, to1_member):
   special_messages = {
-    "2.3440408228921344e+17": { "Donggeon": "Wow I noticed your SURF outfit at KCON 2022 LA :thumbsup: :heart:", 
-                            "J.You": "Ray... will you give your purse for Kuya J.You~ :smirk: :blush:"},
-    "3.5477441436739174e+17": { "Jaeyun" : "I care and love you the most hehe :heart_hands: :blush:", 
+    RAY_ID: { "Donggeon": "Wow I noticed your SURF outfit at KCON 2022 LA :thumbsup: :heart:", 
+                            "J.You": "Ray... will you give your purse for me baby~ :smirk: :blush:"},
+    LEE_ID: { "Jaeyun" : "I care and love you the most hehe :heart_hands: :blush:", 
                             "Kyungho": "FINALLY IT'S MY TURN TO LOVE YOU :sunglasses: :heart:" },
-    "4.0123820780866765e+17": { "Renta": "Renta care you belly belly much Tate :smiling_face_with_3_hearts:" },
-    "4.5629085799848346e+17": { "Renta": "Hana, あなたはとても優しいです、私の一番のファンです。:blush:" },
-    "5.8991284186854195e+17": { "Yeojeong": "You're my favorite fan hehe :: :blush:",
+    TATE_ID: { "Renta": "Renta care you belly belly much Tate :smiling_face_with_3_hearts:" },
+    HANA_ID: { "Renta": "Hana, あなたはとても優しいです、私の一番のファンです。:blush:" },
+    NIKKO_ID: { "Yeojeong": "You're my favorite fan hehe :: :blush:",
                             "Jaeyun": "You left me for Yeojeong :sob: but I still love you hehe :heart:" },
-    "5.9298382932987085e+17": { "Renta": "RENTAPURR :kissing_cat: :heart:",
+    NAT_ID: { "Renta": "RENTAPURR :kissing_cat: :heart:",
                             "Kyungho": "Why didn't you let Lee claim me? :cry:" },
-    "5.9504130777310822e+17": { "Kyungho": "KATY + KYUNGHO = BESTIES FOR LIFE :heart_eyes: :heart:",
+    KATY_ID: { "Kyungho": "KATY + KYUNGHO = BESTIES FOR LIFE :heart_eyes: :heart:",
                             "Jaeyun": "You're a better leader than me :sweat_smile: :heart:" },
-    "6.4509777778062131e+17": { "Jisu": "My mom approves of us Zay hehe :heart:" },
-    "6.7245882627168666e+17": { "Jaeyun": "GB, you are my sweetest fan. :blush: :heart:",
+    ZAY_ID: { "Jisu": "My mom approves of us Zay hehe :heart:" },
+    GB_ID: { "Jaeyun": "GB, you are my sweetest fan. :blush: :heart:",
                             "Donggeon": "GB, look at me, not Jaeyun :pleading_face:" },
-    "7.5634815120769024e+17": { "Jaeyun": "Sorry I made Lee pergant but I still love you (cheater jk) :heart:",
+    JEWEL_ID: { "Jaeyun": "Sorry I made Lee pergant but I still love you (cheater jk) :heart:",
                             "Daigo": "Daigi loves my 딸기잼 :heart:",
                             "Kyungho" : "Stop calling me KERB :cry: :weary:" },
-    "9.9474209923897766e+17": { "J.You": "I'll look out for you next time I'm in SF :heart:",
+    IVAN_ID: { "J.You": "I'll look out for you next time I'm in SF :heart:",
                             "Donggeon": "Yo bro, when will I overtake J.You as your bias? When bro? :thinking: :sweat_smile:"}
   }
 

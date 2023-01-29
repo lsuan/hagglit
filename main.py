@@ -1,11 +1,10 @@
-import discord
 from discord.ext.commands import Bot
 from discord.ext.commands.errors import MissingRequiredArgument, CommandInvokeError
-import os
 from dotenv import load_dotenv
 from management import *
 from urllib.parse import urlparse
-
+import discord
+import os
 import Paginator
 
 load_dotenv()

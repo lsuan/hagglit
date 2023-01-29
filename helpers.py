@@ -1,11 +1,14 @@
+from artist import Artist
 from collections import defaultdict
 from datetime import datetime, date
-import gspread
+from dotenv import load_dotenv
 from oauth2client.service_account import ServiceAccountCredentials
-
-from artist import Artist
-from to1member import TO1Member
 from projects import Project
+from to1member import TO1Member
+import os
+import gspread
+
+load_dotenv()
 
 def is_new_day(d: datetime):
   return date.today() > d
@@ -144,3 +147,16 @@ PROJECTS_INDEX = get_index_for(PROJECTS_SHEET)
 TO1_MEMBERS = initialize_to1()
 ARTISTS = initialize_artists()
 PROJECTS = initialize_projects()
+
+# ID GLOBALS
+RAY_ID = os.getenv("RAY_ID")
+LEE_ID = os.getenv("LEE_ID")
+TATE_ID = os.getenv("TATE_ID")
+HANA_ID = os.getenv("HANA_ID")
+NIKKO_ID = os.getenv("NIKKO_ID")
+NAT_ID = os.getenv("NAT_ID")
+KATY_ID = os.getenv("KATY_ID")
+ZAY_ID = os.getenv("ZAY_ID")
+GB_ID = os.getenv("GB_ID")
+JEWEL_ID = os.getenv("JEWEL_ID")
+IVAN_ID = os.getenv("IVAN_ID")
