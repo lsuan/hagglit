@@ -117,7 +117,7 @@ def get_greeting(user):
 
   # from jan 30, 2023 to mar 21, 2023, nikko will only get yeojeong care
   if artist_id == NIKKO_ID and ((date.today() - timedelta(days = 50)) <= date(2023, 1, 30)):
-    member = TO1_MEMBERS["Yeojeong"]
+    member = "Yeojeong"
 
   update_db(ARTISTS_SHEET, float(artist_id), 4, artist.get_daily_counter())
 
@@ -171,39 +171,42 @@ def get_greeting(user):
   embed.set_image(url= TO1_MEMBERS[member].get_image())
   return embed
 
-  # greeting = \
-  #   ":sparkling_heart: {0} :sparkling_heart:\n".format(user.display_name) + \
-  #   "{0} {1} says hi~ hehe\n".format(member, TO1_MEMBERS[member]) + \
-  #   "\"{0}아 안녕~ 오늘도 beautiful day 하겠다 ^^ 사랑해 :hand_with_index_finger_and_thumb_crossed:\"".format(user.display_name)
-
 def _get_special_message(artist, to1_member):
   special_messages = {
-    RAY_ID: { "Donggeon": "Wow I noticed your SURF outfit at KCON 2022 LA :thumbsup: :heart:", 
-                            "J.You": "Ray... will you give your purse for me baby~ :smirk: :blush:"},
-    LEE_ID: { "Jaeyun" : "I care and love you the most hehe :heart_hands: :blush:", 
-                            "Kyungho": "FINALLY IT'S MY TURN TO LOVE YOU :sunglasses: :heart:" },
-    TATE_ID: { "Renta": "Renta care you belly belly much Tate :smiling_face_with_3_hearts:" },
-    HANA_ID: { "Renta": "Hana, あなたはとても優しいです、私の一番のファンです。:blush:" },
-    NIKKO_ID: { "Yeojeong": "You're my favorite fan hehe :: :blush:",
-                            "Jaeyun": "You left me for Yeojeong :sob: but I still love you hehe :heart:" },
-    NAT_ID: { "Renta": "RENTAPURR :kissing_cat: :heart:",
-                            "Kyungho": "Why didn't you let Lee claim me? :cry:" },
-    KATY_ID: { "Kyungho": "KATY + KYUNGHO = BESTIES FOR LIFE :heart_eyes: :heart:",
-                            "Jaeyun": "You're a better leader than me :sweat_smile: :heart:" },
-    ZAY_ID: { "Jisu": "My mom approves of us Zay hehe :heart:" },
-    GB_ID: { "Jaeyun": "GB, you are my sweetest fan. :blush: :heart:",
-                            "Donggeon": "GB, look at me, not Jaeyun :pleading_face:" },
-    JEWEL_ID: { "Jaeyun": "Sorry I made Lee pergant but I still love you (cheater jk) :heart:",
-                            "Daigo": "Daigi loves my 딸기잼 :heart:",
-                            "Kyungho" : "Stop calling me KERB :cry: :weary:" },
-    IVAN_ID: { "J.You": "I'll look out for you next time I'm in SF :heart:",
-                            "Donggeon": "Yo bro, when will I overtake J.You as your bias? When bro? :thinking: :sweat_smile:"}
+    RAY_ID: { "Donggeon": ["Wow I noticed your SURF outfit at KCON 2022 LA :thumbsup: :heart:"], 
+              "J.You": ["Ray... will you give your purse for me baby~ :smirk: :blush:"]},
+    LEE_ID: { "Jaeyun" : ["I care and love you the most hehe :heart_hands: :blush:"], 
+              "Kyungho": ["FINALLY IT'S MY TURN TO LOVE YOU :sunglasses: :heart:"] },
+    TATE_ID: { "Renta": ["Renta care you belly belly much Tate :smiling_face_with_3_hearts:"] },
+    HANA_ID: { "Renta": ["Hana, あなたはとても優しいです、私の一番のファンです。:blush:"] },
+    NIKKO_ID: { "Yeojeong": [
+                              "You're my favorite fan hehe :blush:",
+                              "Surprise! Guess who? :blush: :heart:",
+                              "It's my mum! hehe :baby: :heart:",
+                              "I wonder who it could be today... :thinking: :zany:",
+                              "Boo! Did I scare you? :ghost:",
+                              "I swear I read your messages my mum! :baby_bottle:"
+                            ],
+                "Jaeyun": ["You left me for Yeojeong :sob: but I still love you hehe :heart:"] },
+    NAT_ID: { "Renta": ["RENTAPURR :kissing_cat: :heart:"],
+              "Kyungho": ["Why didn't you let Lee claim me? :cry:"] },
+    KATY_ID: { "Kyungho": ["KATY + KYUNGHO = BESTIES FOR LIFE :heart_eyes: :heart:"],
+              "Jaeyun": ["You're a better leader than me :sweat_smile: :heart:"] },
+    ZAY_ID: { "Jisu": ["My mom approves of us Zay hehe :heart:"] },
+    GB_ID: { "Jaeyun": ["GB, you are my sweetest fan. :blush: :heart:"],
+            "Donggeon": ["GB, look at me, not Jaeyun :pleading_face:"] },
+    JEWEL_ID: { "Jaeyun": ["Sorry I made Lee pergant but I still love you (cheater jk) :heart:"],
+                "Daigo": ["Daigi loves my 딸기잼 :heart:"],
+                "Kyungho" : ["Stop calling me KERB :cry: :weary:"] },
+    IVAN_ID: { "J.You": ["I'll look out for you next time I'm in SF :heart:"],
+              "Donggeon": ["Yo bro, when will I overtake J.You as your bias? When bro? :thinking: :sweat_smile:"]}
   }
 
   message = ""
+  
   artist_id = artist.get_id()
   if to1_member in special_messages[artist_id]:
-    message = special_messages[artist_id][to1_member] + "\n"
+    message = choice(special_messages[artist_id][to1_member]) + "\n"
   return message
 
 def greeting_error(user):
