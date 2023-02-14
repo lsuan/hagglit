@@ -183,7 +183,7 @@ def _get_special_message(artist, to1_member):
                               "You're my favorite fan hehe :blush:",
                               "Surprise! Guess who? :blush: :heart:",
                               "It's my mum! hehe :baby: :heart:",
-                              "I wonder who it could be today... :thinking: :zany:",
+                              "I wonder who it could be today... :thinking: :zany_face:",
                               "Boo! Did I scare you? :ghost:",
                               "I swear I read your messages my mum! :baby_bottle:"
                             ],

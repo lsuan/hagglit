@@ -93,9 +93,13 @@ async def greeting(ctx):
     # if artist.get_daily_counter() > 4:
     #   await ctx.send(f"/timeout user:{ctx.author.mention} duration:60 seconds")
   except Exception as e:
+    print(e)
     embed = greeting_error(ctx.author)
     await ctx.send(embed=embed)
-    
+
+@bot.command(extra={"type:" "misc"})
+async def eli(ctx):
+  await ctx.send("You can't spell elite without ~eli :blush:")
 
 @bot.command(description="get your care history", extras={"type": "care"})
 async def collection(ctx, *member):
